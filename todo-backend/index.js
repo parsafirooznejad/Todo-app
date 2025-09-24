@@ -3,6 +3,11 @@ const cors = require("cors");
 const sequelize = require("./database");
 const User = require("./models/User");
 const Task = require("./models/Task");
+const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -16,7 +21,52 @@ sequelize
   .then(() => console.log("✅ Database & tables created!"))
   .catch((err) => console.error("❌ Error syncing database:", err));
 
+// middleware to protect APIs
+
+function authenticationToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+app.use("/tasks", authenticationToken);
+
 // API ROUTES
+
+// register
+app.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({ username, email, password: hashedPassword });
+  res.status(201).json({ message: "User registered successfully", user });
+});
+
+//login
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ where: { username } });
+
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid)
+    return res.status(401).json({ error: "Invalid credentials" });
+
+  const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+  });
+
+  res.json({ message: "Login successful", token });
+});
 
 // ROOT Directory
 app.get("/", (req, res) => {
