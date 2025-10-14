@@ -1,7 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import Login from "./login";
+import Login from "./Login";
 import TaskPage from "./TaskPage";
-import Register from "./register";
+import Register from "./Register";
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem("token"));

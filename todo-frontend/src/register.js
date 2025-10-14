@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 function Register({ setShowRegister }) {
-  const [username, setUsername] =useState("")
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,17 +24,17 @@ function Register({ setShowRegister }) {
       }
 
       alert("Registration successful! You can now log in.");
-      setShowRegister(false); 
+      setShowRegister(false);
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h2>Register</h2>
       <form onSubmit={handleRegister}>
-      <input
+        <input
           type="username"
           placeholder="Username"
           value={username}
